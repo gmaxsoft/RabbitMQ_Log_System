@@ -4,6 +4,9 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq_service
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
     ports:
       - "5672:5672"   # Port dla komunikacji AMQP
       - "15672:15672" # Panel webowy (login: guest, pass: guest)
@@ -12,21 +15,31 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - rabbitmq-network
 
   producer:
     build: ./producer
     container_name: log_producer
     environment:
-      - RABBITMQ_URL=amqp://rabbitmq
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     depends_on:
       rabbitmq:
         condition: service_healthy
+    networks:
+      - rabbitmq-network
 
   consumer:
     build: ./consumer
     container_name: log_consumer
     environment:
-      - RABBITMQ_URL=amqp://rabbitmq
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
     depends_on:
       rabbitmq:
         condition: service_healthy
+    networks:
+      - rabbitmq-network
+
+networks:
+  rabbitmq-network:
+    driver: bridge
