@@ -16,8 +16,10 @@ async function receiveAlerts() {
         const q = await channel.assertQueue('', { exclusive: true });
 
         // Subskrybujemy tylko błędy z dowolnego modułu
-        await channel.bindQueue(q.queue, exchange, '*.error');
-        console.log('[+] Nasłuchiwanie alertów na pattern: *.error');
+        //await channel.bindQueue(q.queue, exchange, '*.error');
+        
+        await channel.bindQueue(q.queue, exchange, 'auth.*');
+        console.log('[+] Nasłuchiwanie alertów na pattern: auth.*');
 
         console.log(' [*] Czekam na ALERTY. Aby wyjść: CTRL+C');
 
