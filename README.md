@@ -51,22 +51,21 @@ W projekcie wykorzystano **Topic Exchange**, co pozwala na elastyczne rutowanie 
    - ARCHIWIZATOR wyświetla wszystko
 
 ### Dostęp do panelu RabbitMQ:
-- URL: http://lo
+- URL: http://localhost:15672
+- Login: `guest`
+- Hasło: `guest`
 
 ### Dostęp do bazy MongoDB:
 - Host: `localhost:27017`
 - Username: `admin`
 - Password: `password`
 - Database: `rabbitmq_logs`
-- Collection: `messages`calhost:15672
-- Login: `guest`
-- Hasło: `guest`
+- Collection: `messages`
 
 ---
 
 ## 📋 Zmienne środowiskowe
 
-- `MONGODB_URL` - URL do MongoDB (domyślnie: `mongodb://admin:password@mongodb:27017/rabbitmq_logs`)
 ### Producer:
 - `RABBITMQ_URL` - URL do RabbitMQ (domyślnie: `amqp://guest:guest@rabbitmq:5672`)
 
@@ -74,6 +73,7 @@ W projekcie wykorzystano **Topic Exchange**, co pozwala na elastyczne rutowanie 
 - `RABBITMQ_URL` - URL do RabbitMQ
 - `BINDING_KEY` - Wzorzec wiadomości do subskrypcji (domyślnie: `#`)
 - `CONSUMER_NAME` - Nazwa konsumenta w logach
+- `MONGODB_URL` - URL do MongoDB (domyślnie: `mongodb://admin:password@mongodb:27017/rabbitmq_logs`)
 
 ---
 
@@ -97,9 +97,7 @@ W projekcie wykorzystano **Topic Exchange**, co pozwala na elastyczne rutowanie 
 ```
 
 ---
-Persistentna baza danych** - wszystkie logi zapisywane w MongoDB
-✅ **Indeksowanie danych** - automatyczne tworzenie indeksów dla wydajności
-✅ **
+
 ## 🔧 Funkcjonalności
 
 ✅ **Niezawodne połączenia** - automatyczne ponowne próby w przypadku błędu
@@ -107,6 +105,8 @@ Persistentna baza danych** - wszystkie logi zapisywane w MongoDB
 ✅ **Obsługa błędów** - szczegółowe logowanie błędów z stack trace'ami
 ✅ **Topic Exchange** - elastyczne routowanie wiadomości
 ✅ **Multiple Consumers** - wsparcie dla wielu konsumentów z różnymi filtrami
+✅ **Persistentna baza danych** - wszystkie logi zapisywane w MongoDB
+✅ **Indeksowanie danych** - automatyczne tworzenie indeksów dla wydajności
 ✅ **Docker Compose** - łatwe uruchomienie całego stacku
 ✅ **GitHub Actions** - automatyczne testy CI/CD
 
@@ -123,17 +123,22 @@ Aby zobaczyć system w akcji:
 5. Wciśnij Ctrl+C, aby zatrzymać stos
 
 Przykładowy output:
+```
+producer    | [x] Wysłano: payments.error -> Log zdarzenia z godziny 2026-01-18T10:30:45.123Z
+error_logger| [ALERCIARZ] Odebrano: payments.error -> Log zdarzenia z godziny 2026-01-18T10:30:45.123Z
 error_logger| [✓] Zapisano do MongoDB (ID: 507f1f77bcf86cd799439011)
 archive_logger| [ARCHIWIZATOR] Odebrano: payments.error -> Log zdarzenia z godziny 2026-01-18T10:30:45.123Z
 archive_logger| [✓] Zapisano do MongoDB (ID: 507f1f77bcf86cd799439012)
-producer    | [x] Wysłano: payments.error -> Log zdarzenia z godziny 2026-01-18T10:30:45.123Z
-error_logger| [ALERCIARZ] Odebrano: payments.error -> Log zdarzenia z godziny 2026-01-18T10:30:45.123Z
-archive_logger| [ARCHIWIZATOR] Odebrano: payments.error -> Log zdarzenia z godziny 2026-01-18T10:30:45.123Z
 ```
 
 ---
 
 ## 📝 Notatki
+
+- Kolejki są tymczasowe i usuwane po wyłączeniu kontenera
+- Exchange jest typu `topic` do elastycznego routowania
+- Producent wysyła wiadomości co 3 sekundy z losowymi parametrami
+- Każdy konsument otrzymuje kopię wiadomości zgodnie ze swoim filtrem
 - MongoDB przechowuje wszystkie wiadomości w kolekcji `messages`
 - Dane w MongoDB są persistentne i zachowywane po wyłączeniu kontenera
 - Każdy dokument zawiera: `routingKey`, `message`, `consumer`, `timestamp`, `bindingKey`
@@ -146,11 +151,6 @@ Konsumenci automatycznie zapisują wszystkie odbrane wiadomości do bazy danych:
 - **ARCHIWIZATOR** - zapisuje wszystkie wiadomości (`#`)
 
 Dane mogą być później przeanalizowane za pomocą MongoDB Query Language lub narzędzi takich jak MongoDB Compass.
-
-- Kolejki są tymczasowe i usuwane po wyłączeniu kontenera
-- Exchange jest typu `topic` do elastycznego routowania
-- Producent wysyła wiadomości co 3 sekundy z losowymi parametrami
-- Każdy konsument otrzymuje kopię wiadomości zgodnie ze swoim filtrem
 
 ---
 
