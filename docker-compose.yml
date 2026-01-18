@@ -29,11 +29,28 @@ services:
     networks:
       - rabbitmq-network
 
-  consumer:
+  # Konsument nr 1: Loguje tylko błędy
+  error_logger:
     build: ./consumer
-    container_name: log_consumer
+    container_name: error_logger
     environment:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - BINDING_KEY=*.error
+      - CONSUMER_NAME=ALERCIARZ
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - rabbitmq-network
+
+  # Konsument nr 2: Loguje wszystko (archiwum)
+  archive_logger:
+    build: ./consumer
+    container_name: archive_logger
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - BINDING_KEY=#
+      - CONSUMER_NAME=ARCHIWIZATOR
     depends_on:
       rabbitmq:
         condition: service_healthy
