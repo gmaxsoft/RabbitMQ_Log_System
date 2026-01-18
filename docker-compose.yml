@@ -18,6 +18,24 @@ services:
     networks:
       - rabbitmq-network
 
+  mongodb:
+    image: mongo:7
+    container_name: mongodb_service
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    ports:
+      - "27017:27017"  # Port dla MongoDB
+    volumes:
+      - mongodb_data:/data/db  # Persistentna pamięć dla danych
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rabbitmq-network
+
   producer:
     build: ./producer
     container_name: log_producer
@@ -37,8 +55,11 @@ services:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
       - BINDING_KEY=*.error
       - CONSUMER_NAME=ALERCIARZ
+      - MONGODB_URL=mongodb://admin:password@mongodb:27017/rabbitmq_logs
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      mongodb:
         condition: service_healthy
     networks:
       - rabbitmq-network
@@ -51,11 +72,17 @@ services:
       - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
       - BINDING_KEY=#
       - CONSUMER_NAME=ARCHIWIZATOR
+      - MONGODB_URL=mongodb://admin:password@mongodb:27017/rabbitmq_logs
     depends_on:
       rabbitmq:
         condition: service_healthy
+      mongodb:
+        condition: service_healthy
     networks:
       - rabbitmq-network
+
+volumes:
+  mongodb_data:
 
 networks:
   rabbitmq-network:

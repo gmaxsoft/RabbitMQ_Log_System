@@ -2,6 +2,7 @@
   "name": "consumer",
   "version": "1.0.0",
   "dependencies": {
-    "amqplib": "^0.10.9"
+    "amqplib": "^0.10.9",
+    "mongodb": "^6.3.0"
   }
 }
